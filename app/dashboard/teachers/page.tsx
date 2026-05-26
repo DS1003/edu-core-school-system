@@ -19,13 +19,28 @@ import {
 } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { mockTeachers } from "@/lib/mock-data"
+import { useTranslation } from "@/lib/i18n"
 
 export default function TeachersPage() {
+  const { language } = useTranslation()
+  const isPt = language === "pt"
+
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
 
   const departments = ["All", "Sciences", "Mathematics", "Languages", "Arts", "Physical Education"]
+
+  const getDeptLabel = (dept: string) => {
+    const map: Record<string, string> = {
+      All: isPt ? "Todos" : "Tous",
+      Sciences: isPt ? "Ciências" : "Sciences",
+      Mathematics: isPt ? "Matemática" : "Mathématiques",
+      Languages: isPt ? "Línguas" : "Langues",
+      Arts: isPt ? "Artes" : "Arts",
+      "Physical Education": isPt ? "Educação Física" : "Éducation Physique"
+    }
+    return map[dept] || dept
+  }
 
   const filteredTeachers = mockTeachers.filter(teacher => {
     const matchesSearch = teacher.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -41,22 +56,26 @@ export default function TeachersPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Teachers</h1>
-          <p className="text-muted-foreground">Manage your teaching staff</p>
+          <h1 className="text-2xl font-bold text-foreground">
+            {isPt ? "Professores" : "Enseignants"}
+          </h1>
+          <p className="text-muted-foreground">
+            {isPt ? "Gerencie a sua equipa docente" : "Gérez votre corps enseignant"}
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm">
             <Upload className="mr-2 h-4 w-4" />
-            Import
+            {isPt ? "Importar" : "Importer"}
           </Button>
           <Button variant="outline" size="sm">
             <Download className="mr-2 h-4 w-4" />
-            Export
+            {isPt ? "Exportar" : "Exporter"}
           </Button>
           <Link href="/dashboard/teachers/new">
             <Button className="bg-primary hover:bg-primary/90">
               <Plus className="mr-2 h-4 w-4" />
-              Add Teacher
+              {isPt ? "Adicionar professor" : "Ajouter un enseignant"}
             </Button>
           </Link>
         </div>
@@ -67,7 +86,7 @@ export default function TeachersPage() {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search teachers..."
+            placeholder={isPt ? "Pesquisar professores..." : "Rechercher des enseignants..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 bg-card border-border/50"
@@ -82,7 +101,7 @@ export default function TeachersPage() {
               onClick={() => setSelectedDepartment(dept === "All" ? null : dept)}
               className="whitespace-nowrap"
             >
-              {dept}
+              {getDeptLabel(dept)}
             </Button>
           ))}
         </div>
@@ -91,10 +110,10 @@ export default function TeachersPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          { label: "Total Teachers", value: mockTeachers.length, color: "text-primary" },
-          { label: "Active", value: mockTeachers.filter(t => t.status === "active").length, color: "text-emerald-500" },
-          { label: "Inactive", value: mockTeachers.filter(t => t.status === "inactive").length, color: "text-amber-500" },
-          { label: "On Leave", value: mockTeachers.filter(t => t.status === "on_leave").length, color: "text-red-500" },
+          { label: isPt ? "Total de Professores" : "Total Enseignants", value: mockTeachers.length, color: "text-primary" },
+          { label: isPt ? "Ativos" : "Actifs", value: mockTeachers.filter(t => t.status === "active").length, color: "text-emerald-500" },
+          { label: isPt ? "Inativos" : "Inactifs", value: mockTeachers.filter(t => t.status === "inactive").length, color: "text-amber-500" },
+          { label: isPt ? "Em Licença" : "En congé", value: mockTeachers.filter(t => t.status === "on_leave").length, color: "text-red-500" },
         ].map((stat, i) => (
           <motion.div
             key={stat.label}
@@ -131,14 +150,14 @@ export default function TeachersPage() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem>
-                      <Eye className="mr-2 h-4 w-4" /> View Profile
+                      <Eye className="mr-2 h-4 w-4" /> {isPt ? "Ver perfil" : "Voir profil"}
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      <Edit className="mr-2 h-4 w-4" /> Edit
+                      <Edit className="mr-2 h-4 w-4" /> {isPt ? "Editar" : "Modifier"}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem className="text-destructive">
-                      <Trash2 className="mr-2 h-4 w-4" /> Delete
+                      <Trash2 className="mr-2 h-4 w-4" /> {isPt ? "Eliminar" : "Supprimer"}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -160,9 +179,20 @@ export default function TeachersPage() {
                       {teacher.firstName} {teacher.lastName}
                     </h3>
                   </Link>
-                  <p className="text-sm text-muted-foreground">{teacher.specialization}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {isPt ? (
+                      teacher.specialization
+                        .replace("Mathematics", "Matemática")
+                        .replace("Sciences", "Ciências")
+                        .replace("Languages", "Línguas")
+                        .replace("Arts", "Artes")
+                        .replace("Physical Education", "Educação Física")
+                    ) : (
+                      teacher.specialization
+                    )}
+                  </p>
                   <Badge variant="outline" className="mt-1 text-xs">
-                    Temps plein
+                    {isPt ? "Tempo integral" : "Temps plein"}
                   </Badge>
                 </div>
               </div>
@@ -178,7 +208,18 @@ export default function TeachersPage() {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <BookOpen className="h-4 w-4" />
-                  <span>{teacher.specialization}</span>
+                  <span>
+                    {isPt ? (
+                      teacher.specialization
+                        .replace("Mathematics", "Matemática")
+                        .replace("Sciences", "Ciências")
+                        .replace("Languages", "Línguas")
+                        .replace("Arts", "Artes")
+                        .replace("Physical Education", "Educação Física")
+                    ) : (
+                      teacher.specialization
+                    )}
+                  </span>
                 </div>
               </div>
 
@@ -188,7 +229,7 @@ export default function TeachersPage() {
                   <span className="text-sm font-medium">4.5</span>
                 </div>
                 <span className="text-xs text-muted-foreground">
-                  {teacher.classIds?.length || 0} classes assigned
+                  {teacher.classIds?.length || 0} {isPt ? "turmas atribuídas" : "classes affectées"}
                 </span>
               </div>
             </motion.div>
@@ -199,8 +240,12 @@ export default function TeachersPage() {
       {filteredTeachers.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <GraduationCap className="h-12 w-12 text-muted-foreground/50" />
-          <h3 className="mt-4 text-lg font-medium">No teachers found</h3>
-          <p className="text-muted-foreground">Try adjusting your search or filters</p>
+          <h3 className="mt-4 text-lg font-medium">
+            {isPt ? "Nenhum professor encontrado" : "Aucun enseignant trouvé"}
+          </h3>
+          <p className="text-muted-foreground">
+            {isPt ? "Tente ajustar a sua pesquisa ou filtros" : "Essayez d'ajuster votre recherche ou vos filtres"}
+          </p>
         </div>
       )}
     </div>

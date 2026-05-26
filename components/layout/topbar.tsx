@@ -2,6 +2,7 @@
 
 import { useTheme } from 'next-themes'
 import { useAppStore } from '@/store/app-store'
+import { useTranslation } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { timeAgo } from '@/lib/mock-data'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -27,6 +28,7 @@ import Link from 'next/link'
 
 export function Topbar() {
   const { theme, setTheme } = useTheme()
+  const { t, language, setLanguage } = useTranslation()
   const { 
     toggleSidebar, 
     currentUser, 
@@ -39,8 +41,10 @@ export function Topbar() {
   
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [langOpen, setLangOpen] = useState(false)
   const notifRef = useRef<HTMLDivElement>(null)
   const profileRef = useRef<HTMLDivElement>(null)
+  const langRef = useRef<HTMLDivElement>(null)
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -50,6 +54,9 @@ export function Topbar() {
       }
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setProfileOpen(false)
+      }
+      if (langRef.current && !langRef.current.contains(event.target as Node)) {
+        setLangOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -83,7 +90,7 @@ export function Topbar() {
             className="hidden sm:flex items-center gap-3 h-10 px-4 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors text-muted-foreground w-64 lg:w-80"
           >
             <Search className="h-4 w-4" />
-            <span className="text-sm">Rechercher...</span>
+            <span className="text-sm">{t('topbar.search')}</span>
             <kbd className="ml-auto hidden lg:inline-flex h-5 items-center gap-1 rounded border border-border bg-muted px-1.5 text-[10px] font-medium text-muted-foreground">
               <span className="text-xs">⌘</span>K
             </kbd>
@@ -99,6 +106,54 @@ export function Topbar() {
 
         {/* Right side */}
         <div className="flex items-center gap-2">
+          {/* Language Selector */}
+          <div ref={langRef} className="relative">
+            <button
+              onClick={() => setLangOpen(!langOpen)}
+              className="flex items-center gap-1.5 h-10 px-3 rounded-xl hover:bg-secondary transition-colors text-muted-foreground font-semibold text-xs uppercase"
+            >
+              <span>{language === 'fr' ? '🇫🇷 FR' : '🇵🇹 PT'}</span>
+              <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+            </button>
+            
+            <AnimatePresence>
+              {langOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 mt-2 w-36 bg-card border border-border rounded-xl shadow-xl overflow-hidden p-1 z-50"
+                >
+                  <button
+                    onClick={() => {
+                      setLanguage('fr')
+                      setLangOpen(false)
+                    }}
+                    className={cn(
+                      "flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-xs font-semibold hover:bg-secondary transition-colors text-left",
+                      language === 'fr' ? "bg-primary/10 text-primary font-bold" : "text-muted-foreground"
+                    )}
+                  >
+                    <span className="text-sm">🇫🇷</span> Français
+                  </button>
+                  <button
+                    onClick={() => {
+                      setLanguage('pt')
+                      setLangOpen(false)
+                    }}
+                    className={cn(
+                      "flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-xs font-semibold hover:bg-secondary transition-colors text-left",
+                      language === 'pt' ? "bg-primary/10 text-primary font-bold" : "text-muted-foreground"
+                    )}
+                  >
+                    <span className="text-sm">🇵🇹</span> Português
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           {/* Theme toggle */}
           <button
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -131,13 +186,13 @@ export function Topbar() {
                   className="absolute right-0 mt-2 w-80 sm:w-96 bg-card border border-border rounded-2xl shadow-xl overflow-hidden"
                 >
                   <div className="flex items-center justify-between p-4 border-b border-border">
-                    <h3 className="font-semibold">Notifications</h3>
+                    <h3 className="font-semibold">{t('topbar.notifications')}</h3>
                     {unreadCount > 0 && (
                       <button
                         onClick={markAllAsRead}
                         className="text-xs text-primary hover:underline"
                       >
-                        Tout marquer comme lu
+                        {t('topbar.markAllRead')}
                       </button>
                     )}
                   </div>
@@ -145,7 +200,7 @@ export function Topbar() {
                     {notifications.length === 0 ? (
                       <div className="p-8 text-center text-muted-foreground">
                         <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">Aucune notification</p>
+                        <p className="text-sm">{t('topbar.noNotifications')}</p>
                       </div>
                     ) : (
                       notifications.map((notif) => (
@@ -186,7 +241,7 @@ export function Topbar() {
                       href="/dashboard/notifications"
                       className="block text-center text-sm text-primary hover:underline"
                     >
-                      Voir toutes les notifications
+                      {t('topbar.viewAllNotifications')}
                     </Link>
                   </div>
                 </motion.div>
@@ -229,29 +284,29 @@ export function Topbar() {
                       className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary transition-colors"
                     >
                       <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Mon profil</span>
+                      <span className="text-sm">{t('topbar.profile')}</span>
                     </Link>
                     <Link
                       href="/dashboard/settings"
                       className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary transition-colors"
                     >
                       <Settings className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Paramètres</span>
+                      <span className="text-sm">{t('topbar.settings')}</span>
                     </Link>
                     <Link
                       href="/help"
                       className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary transition-colors"
                     >
                       <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Aide</span>
+                      <span className="text-sm">{t('topbar.help')}</span>
                     </Link>
                   </div>
                   <div className="p-2 border-t border-border">
                     <button
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-destructive/10 transition-colors w-full text-destructive"
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-destructive/10 transition-colors w-full text-left text-destructive"
                     >
                       <LogOut className="h-4 w-4" />
-                      <span className="text-sm">Déconnexion</span>
+                      <span className="text-sm">{t('topbar.signOut')}</span>
                     </button>
                   </div>
                 </motion.div>

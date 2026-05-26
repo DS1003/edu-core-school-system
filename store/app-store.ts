@@ -40,6 +40,10 @@ interface AppState {
   // View preferences
   tableView: 'grid' | 'list'
   setTableView: (view: 'grid' | 'list') => void
+
+  // Language selection
+  language: 'fr' | 'pt'
+  setLanguage: (lang: 'fr' | 'pt') => void
 }
 
 export const useAppStore = create<AppState>()(
@@ -51,6 +55,10 @@ export const useAppStore = create<AppState>()(
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
       setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
       toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+      
+      // Language
+      language: 'fr',
+      setLanguage: (lang) => set({ language: lang }),
       
       // Current user - mock admin user
       currentUser: {
@@ -110,7 +118,8 @@ export const useAppStore = create<AppState>()(
       name: 'educore-storage',
       partialize: (state) => ({
         sidebarCollapsed: state.sidebarCollapsed,
-        tableView: state.tableView
+        tableView: state.tableView,
+        language: state.language
       })
     }
   )

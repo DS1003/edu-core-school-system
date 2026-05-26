@@ -24,8 +24,12 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { mockStudents, mockClasses } from '@/lib/mock-data'
 import type { Student } from '@/types'
+import { useTranslation } from '@/lib/i18n'
 
 export default function StudentsPage() {
+  const { language } = useTranslation()
+  const isPt = language === 'pt'
+
   const [view, setView] = useState<'list' | 'grid'>('list')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedClass, setSelectedClass] = useState<string>('all')
@@ -51,10 +55,10 @@ export default function StudentsPage() {
       transferred: 'bg-amber-500/10 text-amber-500'
     }
     const labels = {
-      active: 'Actif',
-      inactive: 'Inactif',
-      graduated: 'Diplômé',
-      transferred: 'Transféré'
+      active: isPt ? 'Ativo' : 'Actif',
+      inactive: isPt ? 'Inativo' : 'Inactif',
+      graduated: isPt ? 'Graduado' : 'Diplômé',
+      transferred: isPt ? 'Transferido' : 'Transféré'
     }
     return (
       <span className={cn('px-2 py-1 rounded-full text-xs font-medium', styles[status])}>
@@ -65,7 +69,17 @@ export default function StudentsPage() {
 
   const getClassName = (classId: string) => {
     const cls = mockClasses.find(c => c.id === classId)
-    return cls?.name || 'N/A'
+    if (!cls) return 'N/A'
+    
+    // Simple local translation for mock class levels if needed
+    if (isPt) {
+      return cls.name
+        .replace('Troisième', '9º Ano')
+        .replace('Première', '11º Ano')
+        .replace('Terminale', '12º Ano')
+        .replace('Seconde', '10º Ano')
+    }
+    return cls.name
   }
 
   return (
@@ -73,22 +87,24 @@ export default function StudentsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Élèves</h1>
-          <p className="text-muted-foreground">Gérez tous les élèves de votre établissement</p>
+          <h1 className="text-2xl font-bold">{isPt ? "Alunos" : "Élèves"}</h1>
+          <p className="text-muted-foreground">
+            {isPt ? "Gerencie todos os alunos do seu colégio" : "Gérez tous les élèves de votre établissement"}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="gap-2">
             <Upload className="h-4 w-4" />
-            <span className="hidden sm:inline">Importer</span>
+            <span className="hidden sm:inline">{isPt ? "Importar" : "Importer"}</span>
           </Button>
           <Button variant="outline" size="sm" className="gap-2">
             <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Exporter</span>
+            <span className="hidden sm:inline">{isPt ? "Exportar" : "Exporter"}</span>
           </Button>
           <Link href="/dashboard/students/new">
             <Button size="sm" className="gap-2">
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Nouvel élève</span>
+              <span className="hidden sm:inline">{isPt ? "Novo aluno" : "Nouvel élève"}</span>
             </Button>
           </Link>
         </div>
@@ -99,7 +115,7 @@ export default function StudentsPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Rechercher un élève..."
+            placeholder={isPt ? "Pesquisar um aluno..." : "Rechercher un élève..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -111,9 +127,9 @@ export default function StudentsPage() {
             onChange={(e) => setSelectedClass(e.target.value)}
             className="h-10 rounded-lg border border-border bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            <option value="all">Toutes les classes</option>
+            <option value="all">{isPt ? "Todas as turmas" : "Toutes les classes"}</option>
             {mockClasses.map(cls => (
-              <option key={cls.id} value={cls.id}>{cls.name}</option>
+              <option key={cls.id} value={cls.id}>{getClassName(cls.id)}</option>
             ))}
           </select>
           <select
@@ -121,11 +137,11 @@ export default function StudentsPage() {
             onChange={(e) => setSelectedStatus(e.target.value)}
             className="h-10 rounded-lg border border-border bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            <option value="all">Tous les statuts</option>
-            <option value="active">Actif</option>
-            <option value="inactive">Inactif</option>
-            <option value="graduated">Diplômé</option>
-            <option value="transferred">Transféré</option>
+            <option value="all">{isPt ? "Todos os estados" : "Tous les statuts"}</option>
+            <option value="active">{isPt ? "Ativo" : "Actif"}</option>
+            <option value="inactive">{isPt ? "Inativo" : "Inactif"}</option>
+            <option value="graduated">{isPt ? "Graduado" : "Diplômé"}</option>
+            <option value="transferred">{isPt ? "Transferido" : "Transféré"}</option>
           </select>
           <div className="hidden sm:flex items-center gap-1 border border-border rounded-lg p-1">
             <button
@@ -153,10 +169,10 @@ export default function StudentsPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Total élèves', value: mockStudents.length, color: 'text-blue-500' },
-          { label: 'Actifs', value: mockStudents.filter(s => s.status === 'active').length, color: 'text-emerald-500' },
-          { label: 'Nouveaux ce mois', value: 23, color: 'text-purple-500' },
-          { label: 'Taux de présence', value: '94.5%', color: 'text-amber-500' }
+          { label: isPt ? 'Total de alunos' : 'Total élèves', value: mockStudents.length, color: 'text-blue-500' },
+          { label: isPt ? 'Ativos' : 'Actifs', value: mockStudents.filter(s => s.status === 'active').length, color: 'text-emerald-500' },
+          { label: isPt ? 'Novos este mês' : 'Nouveaux ce mois', value: 23, color: 'text-purple-500' },
+          { label: isPt ? 'Taxa de presença' : 'Taux de présence', value: '94.5%', color: 'text-amber-500' }
         ].map((stat, i) => (
           <div key={i} className="bg-card border border-border rounded-xl p-4">
             <p className="text-sm text-muted-foreground">{stat.label}</p>
@@ -168,7 +184,7 @@ export default function StudentsPage() {
       {/* Results count */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {filteredStudents.length} élève{filteredStudents.length > 1 ? 's' : ''} trouvé{filteredStudents.length > 1 ? 's' : ''}
+          {filteredStudents.length} {isPt ? 'aluno' : 'élève'}{filteredStudents.length > 1 ? 's' : ''} {isPt ? 'encontrado' : 'trouvé'}{filteredStudents.length > 1 ? 's' : ''}
         </p>
       </div>
 
@@ -179,12 +195,12 @@ export default function StudentsPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border bg-secondary/30">
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Élève</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden md:table-cell">Matricule</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden sm:table-cell">Classe</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden lg:table-cell">Contact</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Statut</th>
-                  <th className="text-right p-4 text-sm font-medium text-muted-foreground">Actions</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">{isPt ? "Aluno" : "Élève"}</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden md:table-cell">{isPt ? "Matrícula" : "Matricule"}</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden sm:table-cell">{isPt ? "Turma" : "Classe"}</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden lg:table-cell">{isPt ? "Contacto" : "Contact"}</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">{isPt ? "Estado" : "Statut"}</th>
+                  <th className="text-right p-4 text-sm font-medium text-muted-foreground">{isPt ? "Ações" : "Actions"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -275,7 +291,7 @@ export default function StudentsPage() {
               <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border">
                 <Link href={`/dashboard/students/${student.id}`} className="flex-1">
                   <Button variant="outline" size="sm" className="w-full">
-                    Voir profil
+                    {isPt ? "Ver perfil" : "Voir profil"}
                   </Button>
                 </Link>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -290,11 +306,11 @@ export default function StudentsPage() {
       {/* Pagination */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Affichage de 1-20 sur {filteredStudents.length}
+          {isPt ? "A mostrar 1-20 de" : "Affichage de 1-20 sur"} {filteredStudents.length}
         </p>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled>Précédent</Button>
-          <Button variant="outline" size="sm">Suivant</Button>
+          <Button variant="outline" size="sm" disabled>{isPt ? "Anterior" : "Précédent"}</Button>
+          <Button variant="outline" size="sm">{isPt ? "Seguinte" : "Suivant"}</Button>
         </div>
       </div>
     </div>

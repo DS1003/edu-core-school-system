@@ -13,6 +13,7 @@ import {
   Plus
 } from 'lucide-react'
 import Link from 'next/link'
+import { useTranslation } from '@/lib/i18n'
 import { StatCard, ActivityItem, EventCard, ProgressBar } from '@/components/dashboard/stat-cards'
 import { ChartCard, RevenueChart, AttendanceChart, ClassDistributionChart, SubjectPerformanceChart } from '@/components/dashboard/charts'
 import { 
@@ -43,6 +44,10 @@ const itemVariants = {
 }
 
 export default function DashboardPage() {
+  const { t } = useTranslation()
+  const isPt = t('dashboard.attendanceToday') === 'Hoje'
+  const currentMonthLabel = isPt ? 'Maio 2026' : 'Mai 2026'
+
   return (
     <motion.div 
       variants={containerVariants}
@@ -53,17 +58,17 @@ export default function DashboardPage() {
       {/* Header */}
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Tableau de bord</h1>
-          <p className="text-muted-foreground">Bienvenue! Voici un aperçu de votre établissement.</p>
+          <h1 className="text-2xl font-bold">{t('dashboard.title')}</h1>
+          <p className="text-muted-foreground">{t('dashboard.welcome')}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="gap-2">
             <CalendarDays className="h-4 w-4" />
-            <span className="hidden sm:inline">Mai 2026</span>
+            <span className="hidden sm:inline">{currentMonthLabel}</span>
           </Button>
           <Button size="sm" className="gap-2">
             <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Nouvelle action</span>
+            <span className="hidden sm:inline">{t('dashboard.newAction')}</span>
           </Button>
         </div>
       </motion.div>
@@ -71,33 +76,33 @@ export default function DashboardPage() {
       {/* Stats Grid */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="Total Élèves"
+          title={t('dashboard.totalStudents')}
           value={mockDashboardStats.totalStudents.toLocaleString('fr-FR')}
-          change="+12% ce mois"
+          change={t('dashboard.studentsChange')}
           changeType="positive"
           icon={<Users className="h-5 w-5" />}
           color="bg-blue-500/10 text-blue-500"
         />
         <StatCard
-          title="Enseignants"
+          title={t('dashboard.teachers')}
           value={mockDashboardStats.totalTeachers}
-          change="+3 ce trimestre"
+          change={t('dashboard.teachersChange')}
           changeType="positive"
           icon={<GraduationCap className="h-5 w-5" />}
           color="bg-purple-500/10 text-purple-500"
         />
         <StatCard
-          title="Revenus du mois"
+          title={t('dashboard.monthRevenue')}
           value={formatCFA(62500000)}
-          change="+18.5% vs. mois dernier"
+          change={t('dashboard.revenueChange')}
           changeType="positive"
           icon={<DollarSign className="h-5 w-5" />}
           color="bg-emerald-500/10 text-emerald-500"
         />
         <StatCard
-          title="Taux de présence"
+          title={t('dashboard.attendanceRate')}
           value={`${mockDashboardStats.attendanceRate}%`}
-          change="-0.5% cette semaine"
+          change={t('dashboard.attendanceChange')}
           changeType="negative"
           icon={<UserCheck className="h-5 w-5" />}
           color="bg-amber-500/10 text-amber-500"
@@ -108,11 +113,11 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <motion.div variants={itemVariants} className="lg:col-span-2">
           <ChartCard 
-            title="Revenus vs Dépenses" 
-            subtitle="Aperçu financier des 8 derniers mois"
+            title={t('dashboard.revenueVsExpenses')} 
+            subtitle={t('dashboard.financialOverview')}
             action={
               <Link href="/dashboard/finances" className="text-sm text-primary hover:underline flex items-center gap-1">
-                Voir détails <ArrowRight className="h-3 w-3" />
+                {t('dashboard.viewDetails')} <ArrowRight className="h-3 w-3" />
               </Link>
             }
           >
@@ -122,8 +127,8 @@ export default function DashboardPage() {
 
         <motion.div variants={itemVariants}>
           <ChartCard 
-            title="Répartition des élèves" 
-            subtitle="Par niveau"
+            title={t('dashboard.classDistribution')} 
+            subtitle={t('dashboard.byLevel')}
           >
             <ClassDistributionChart data={mockClassDistribution} />
           </ChartCard>
@@ -134,24 +139,24 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <motion.div variants={itemVariants} className="lg:col-span-2">
           <ChartCard 
-            title="Présences de la semaine"
-            subtitle="Statistiques de présence par jour"
+            title={t('dashboard.weeklyAttendance')}
+            subtitle={t('dashboard.dailyAttendanceStats')}
             action={
               <Link href="/dashboard/attendance" className="text-sm text-primary hover:underline flex items-center gap-1">
-                Voir détails <ArrowRight className="h-3 w-3" />
+                {t('dashboard.viewDetails')} <ArrowRight className="h-3 w-3" />
               </Link>
             }
           >
             <AttendanceChart data={mockAttendanceData} />
           </ChartCard>
         </motion.div>
-
+ 
         <motion.div variants={itemVariants}>
           <div className="bg-card border border-border rounded-2xl p-6 h-full">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="font-semibold">Activités récentes</h3>
-                <p className="text-sm text-muted-foreground">Dernières actions</p>
+                <h3 className="font-semibold">{t('dashboard.recentActivities')}</h3>
+                <p className="text-sm text-muted-foreground">{t('dashboard.latestActions')}</p>
               </div>
             </div>
             <div className="space-y-1 divide-y divide-border">
@@ -169,7 +174,7 @@ export default function DashboardPage() {
               href="/dashboard/activities"
               className="block text-center text-sm text-primary hover:underline mt-4 pt-4 border-t border-border"
             >
-              Voir toutes les activités
+              {t('dashboard.viewAllActivities')}
             </Link>
           </div>
         </motion.div>
@@ -179,22 +184,22 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <motion.div variants={itemVariants} className="lg:col-span-2">
           <ChartCard 
-            title="Performance par matière"
-            subtitle="Moyenne et taux de réussite"
+            title={t('dashboard.subjectPerformance')}
+            subtitle={t('dashboard.avgSuccessRate')}
           >
             <SubjectPerformanceChart data={mockSubjectPerformance} />
           </ChartCard>
         </motion.div>
-
+ 
         <motion.div variants={itemVariants}>
           <div className="bg-card border border-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="font-semibold">Événements à venir</h3>
-                <p className="text-sm text-muted-foreground">Cette semaine</p>
+                <h3 className="font-semibold">{t('dashboard.upcomingEvents')}</h3>
+                <p className="text-sm text-muted-foreground">{t('dashboard.thisWeek')}</p>
               </div>
               <Link href="/dashboard/calendar" className="text-sm text-primary hover:underline">
-                Voir tout
+                {t('dashboard.viewAllEvents')}
               </Link>
             </div>
             <div className="space-y-3">
@@ -214,31 +219,31 @@ export default function DashboardPage() {
       {/* Progress Section */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-card border border-border rounded-2xl p-6">
-          <h4 className="text-sm font-medium mb-4">Taux de recouvrement</h4>
-          <ProgressBar label="Paiements reçus" value={76} max={100} color="bg-emerald-500" />
+          <h4 className="text-sm font-medium mb-4">{t('dashboard.recoveryRate')}</h4>
+          <ProgressBar label={t('dashboard.paymentsReceived')} value={76} max={100} color="bg-emerald-500" />
           <p className="text-xs text-muted-foreground mt-3">
-            {formatCFA(368250000)} sur {formatCFA(485750000)}
+            {formatCFA(368250000)} {t('dashboard.of')} {formatCFA(485750000)}
           </p>
         </div>
         <div className="bg-card border border-border rounded-2xl p-6">
-          <h4 className="text-sm font-medium mb-4">Capacité des classes</h4>
-          <ProgressBar label="Occupation" value={89} max={100} color="bg-blue-500" />
+          <h4 className="text-sm font-medium mb-4">{t('dashboard.classCapacity')}</h4>
+          <ProgressBar label={t('dashboard.occupied')} value={89} max={100} color="bg-blue-500" />
           <p className="text-xs text-muted-foreground mt-3">
-            2,534 / 2,847 places occupées
+            2,534 / 2,847 {t('dashboard.occupiedPlaces')}
           </p>
         </div>
         <div className="bg-card border border-border rounded-2xl p-6">
-          <h4 className="text-sm font-medium mb-4">Moyenne générale</h4>
+          <h4 className="text-sm font-medium mb-4">{t('dashboard.generalAverage')}</h4>
           <ProgressBar label="Performance" value={68.5} max={100} color="bg-purple-500" />
           <p className="text-xs text-muted-foreground mt-3">
-            13.7/20 - Taux de réussite: 72%
+            13.7/20 - {t('dashboard.successRate')}: 72%
           </p>
         </div>
         <div className="bg-card border border-border rounded-2xl p-6">
-          <h4 className="text-sm font-medium mb-4">Objectif du mois</h4>
-          <ProgressBar label="Progression" value={85} max={100} color="bg-amber-500" />
+          <h4 className="text-sm font-medium mb-4">{t('dashboard.monthGoal')}</h4>
+          <ProgressBar label={t('dashboard.progression')} value={85} max={100} color="bg-amber-500" />
           <p className="text-xs text-muted-foreground mt-3">
-            17 jours restants
+            17 {t('dashboard.daysRemaining')}
           </p>
         </div>
       </motion.div>

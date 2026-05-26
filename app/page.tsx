@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useTheme } from 'next-themes'
+import { useTranslation } from '@/lib/i18n'
+import { cn } from '@/lib/utils'
 import { 
   GraduationCap, 
   Users, 
@@ -32,166 +34,177 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-const features = [
-  {
-    icon: Users,
-    title: 'Gestion des élèves',
-    description: 'Gérez facilement les inscriptions, profils, dossiers et documents administratifs de tous vos élèves.'
-  },
-  {
-    icon: BarChart3,
-    title: 'Analytics avancées',
-    description: 'Tableaux de bord en temps réel pour suivre les performances académiques et le taux d\'absentéisme.'
-  },
-  {
-    icon: Shield,
-    title: 'Sécurité renforcée',
-    description: 'Protection des données conforme aux standards et sauvegardes automatiques toutes les heures.'
-  },
-  {
-    icon: Zap,
-    title: 'Performance optimale',
-    description: 'Interface ultra rapide et fluide, même en connexion 3G/4G limitée ou avec des milliers d\'élèves.'
-  },
-  {
-    icon: Globe,
-    title: 'Multi-campus',
-    description: 'Gérez plusieurs établissements scolaires depuis une seule plateforme centrale unifiée.'
-  },
-  {
-    icon: GraduationCap,
-    title: 'Gestion académique',
-    description: 'Notes, bulletins scolaires automatisés, emplois du temps intelligents et cahier de texte en ligne.'
-  }
-]
-
-const stats = [
-  { value: '500+', label: 'Établissements' },
-  { value: '250K+', label: 'Élèves gérés' },
-  { value: '99.9%', label: 'Disponibilité' },
-  { value: '24/7', label: 'Support & Formation' }
-]
-
-const tabs = [
-  {
-    id: 'pedagogie',
-    label: 'Pédagogie & Bulletins',
-    icon: BookOpen,
-    color: 'from-blue-500 to-indigo-600',
-    title: 'Suivi académique et bulletins automatisés',
-    description: 'Saisissez les notes en quelques secondes, suivez le cahier de texte et générez automatiquement des bulletins scolaires irréprochables aux formats officiels.',
-    points: [
-      'Saisie rapide des notes sur web ou mobile',
-      'Calcul automatique des moyennes et classements',
-      'Configuration des coefficients et matières',
-      'Impression en masse de bulletins officiels'
-    ]
-  },
-  {
-    id: 'finance',
-    label: 'Finance & Mobile Money',
-    icon: Wallet,
-    color: 'from-emerald-500 to-teal-600',
-    title: 'Gestion des scolarités et encaissement Mobile Money',
-    description: 'Simplifiez la collecte des frais de scolarité. Les parents paient par Wave ou Orange Money et reçoivent instantanément leur reçu par SMS.',
-    points: [
-      'Intégration directe Wave, Orange Money et Free Money',
-      'Relances automatiques par SMS pour les impayés',
-      'Suivi en temps réel du taux de recouvrement',
-      'Gestion complète de la comptabilité et des dépenses'
-    ]
-  },
-  {
-    id: 'parents',
-    label: 'Portail Parents Mobile',
-    icon: Smartphone,
-    color: 'from-amber-500 to-orange-600',
-    title: 'Une communication fluide avec les familles',
-    description: 'Offrez aux parents une visibilité complète sur la scolarité de leurs enfants : notes, retards, devoirs et actualités de l\'école.',
-    points: [
-      'Application mobile intuitive pour les parents',
-      'Notifications instantanées pour les absences ou retards',
-      'Consultation en direct du cahier de texte et des devoirs',
-      'Messagerie directe avec l\'administration'
-    ]
-  },
-  {
-    id: 'stats',
-    label: 'Analyses & IA',
-    icon: LineChart,
-    color: 'from-purple-500 to-pink-600',
-    title: 'Des analyses intelligentes pour votre pilotage',
-    description: 'Accédez à des graphiques et des statistiques clés pour prendre les meilleures décisions pour la croissance et la qualité de votre école.',
-    points: [
-      'Évolution des effectifs et des inscriptions',
-      'Analyses prédictives du décrochage scolaire',
-      'Répartition des revenus par classe et niveau',
-      'Suivi de la présence du personnel en un coup d\'œil'
-    ]
-  }
-]
-
-const testimonials = [
-  {
-    name: 'Mamadou Diallo',
-    role: 'Directeur Général',
-    school: 'Groupe Scolaire Sainte Marie (Dakar)',
-    avatar: 'MD',
-    content: 'EduCore a complètement transformé notre gestion scolaire. Le gain de temps sur la génération des bulletins est de plus de 80% et les erreurs de calcul ont totalement disparu.',
-    rating: 5
-  },
-  {
-    name: 'Mariama Sow',
-    role: 'Directrice Financière',
-    school: 'Complexe Éducatif d\'Oussouye (Casamance)',
-    avatar: 'MS',
-    content: 'Le suivi des paiements de scolarité par Mobile Money (Wave et Orange Money) nous a permis de réduire les impayés de 90%. Plus de files d\'attente interminables aux guichets !',
-    rating: 5
-  },
-  {
-    name: 'Julio Mendonça',
-    role: 'Directeur des Études',
-    school: 'Escola Amílcar Cabral (Bissau)',
-    avatar: 'JM',
-    content: 'Mesmo com conexões limitadas às vezes, a plataforma é super leve e o suporte é incrível. Acompanhar a assiduidade dos professores e alunos ficou muito fácil.',
-    rating: 5
-  }
-]
-
-const faqs = [
-  {
-    q: 'EduCore est-il facile à prendre en main pour les enseignants ?',
-    a: 'Absolument. Nous avons conçu EduCore pour qu\'il soit le plus simple possible. Une formation initiale de 2 heures suffit généralement pour que tout votre personnel maîtrise les fonctionnalités de base comme l\'appel et la saisie des notes.'
-  },
-  {
-    q: 'La plateforme fonctionne-t-elle hors-ligne en cas de coupure internet ?',
-    a: 'Oui ! Notre application mobile intègre un mode hors-ligne intelligent. Les enseignants peuvent faire l\'appel ou enregistrer des notes sans internet. Les données seront automatiquement synchronisées dès qu\'une connexion sera détectée.'
-  },
-  {
-    q: 'Comment sont sécurisées nos données d\'élèves et financières ?',
-    a: 'La sécurité est notre priorité absolue. Les données sont chiffrées de bout en bout et sauvegardées automatiquement toutes les heures sur des serveurs sécurisés conformes aux normes internationales. Vous restez l\'unique propriétaire de vos données.'
-  },
-  {
-    q: 'Comment fonctionne l\'intégration Wave et Orange Money ?',
-    a: 'Lorsqu\'un paiement est dû, les parents reçoivent un lien de paiement par SMS. Ils cliquent sur le lien, paient de manière sécurisée en 2 clics avec leur compte Wave ou Orange Money, et le statut est immédiatement mis à jour sur votre tableau de bord.'
-  }
-]
-
 export default function HomePage() {
   const [mounted, setMounted] = useState(false)
   const { theme, setTheme } = useTheme()
+  const { t, language, setLanguage } = useTranslation()
   const [activeTab, setActiveTab] = useState('pedagogie')
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly')
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [langOpen, setLangOpen] = useState(false)
+  const langRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setMounted(true)
+    
+    function handleClickOutside(event: MouseEvent) {
+      if (langRef.current && !langRef.current.contains(event.target as Node)) {
+        setLangOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark')
   }
+
+  const features = [
+    {
+      icon: Users,
+      title: t('landing.featuresShowcase.items.students.title'),
+      description: t('landing.featuresShowcase.items.students.desc')
+    },
+    {
+      icon: BarChart3,
+      title: t('landing.featuresShowcase.items.analytics.title'),
+      description: t('landing.featuresShowcase.items.analytics.desc')
+    },
+    {
+      icon: Shield,
+      title: t('landing.featuresShowcase.items.security.title'),
+      description: t('landing.featuresShowcase.items.security.desc')
+    },
+    {
+      icon: Zap,
+      title: t('landing.featuresShowcase.items.performance.title'),
+      description: t('landing.featuresShowcase.items.performance.desc')
+    },
+    {
+      icon: Globe,
+      title: t('landing.featuresShowcase.items.multicampus.title'),
+      description: t('landing.featuresShowcase.items.multicampus.desc')
+    },
+    {
+      icon: GraduationCap,
+      title: t('landing.featuresShowcase.items.academic.title'),
+      description: t('landing.featuresShowcase.items.academic.desc')
+    }
+  ]
+
+  const stats = [
+    { value: '500+', label: t('landing.stats.schools') },
+    { value: '250K+', label: t('landing.stats.students') },
+    { value: '99.9%', label: t('landing.stats.availability') },
+    { value: '24/7', label: t('landing.stats.support') }
+  ]
+
+  const tabs = [
+    {
+      id: 'pedagogie',
+      label: t('landing.interactiveDemo.tabPedagogie'),
+      icon: BookOpen,
+      color: 'from-blue-500 to-indigo-600',
+      title: t('landing.interactiveDemo.pTitle'),
+      description: t('landing.interactiveDemo.pDesc'),
+      points: [
+        t('landing.interactiveDemo.pPoint1'),
+        t('landing.interactiveDemo.pPoint2'),
+        t('landing.interactiveDemo.pPoint3'),
+        t('landing.interactiveDemo.pPoint4')
+      ]
+    },
+    {
+      id: 'finance',
+      label: t('landing.interactiveDemo.tabFinance'),
+      icon: Wallet,
+      color: 'from-emerald-500 to-teal-600',
+      title: t('landing.interactiveDemo.fTitle'),
+      description: t('landing.interactiveDemo.fDesc'),
+      points: [
+        t('landing.interactiveDemo.fPoint1'),
+        t('landing.interactiveDemo.fPoint2'),
+        t('landing.interactiveDemo.fPoint3'),
+        t('landing.interactiveDemo.fPoint4')
+      ]
+    },
+    {
+      id: 'parents',
+      label: t('landing.interactiveDemo.tabParents'),
+      icon: Smartphone,
+      color: 'from-amber-500 to-orange-600',
+      title: t('landing.interactiveDemo.mTitle'),
+      description: t('landing.interactiveDemo.mDesc'),
+      points: [
+        t('landing.interactiveDemo.mPoint1'),
+        t('landing.interactiveDemo.mPoint2'),
+        t('landing.interactiveDemo.mPoint3'),
+        t('landing.interactiveDemo.mPoint4')
+      ]
+    },
+    {
+      id: 'stats',
+      label: t('landing.interactiveDemo.tabStats'),
+      icon: LineChart,
+      color: 'from-purple-500 to-pink-600',
+      title: t('landing.interactiveDemo.iTitle'),
+      description: t('landing.interactiveDemo.iDesc'),
+      points: [
+        t('landing.interactiveDemo.iPoint1'),
+        t('landing.interactiveDemo.iPoint2'),
+        t('landing.interactiveDemo.iPoint3'),
+        t('landing.interactiveDemo.iPoint4')
+      ]
+    }
+  ]
+
+  const testimonials = [
+    {
+      name: 'Mamadou Diallo',
+      role: t('landing.testimonials.role1'),
+      school: 'Groupe Scolaire Sainte Marie (Dakar)',
+      avatar: 'MD',
+      content: t('landing.testimonials.rating1'),
+      rating: 5
+    },
+    {
+      name: 'Mariama Sow',
+      role: t('landing.testimonials.role2'),
+      school: 'Complexe Éducatif d\'Oussouye (Casamance)',
+      avatar: 'MS',
+      content: t('landing.testimonials.rating2'),
+      rating: 5
+    },
+    {
+      name: 'Julio Mendonça',
+      role: t('landing.testimonials.role3'),
+      school: 'Escola Amílcar Cabral (Bissau)',
+      avatar: 'JM',
+      content: t('landing.testimonials.rating3'),
+      rating: 5
+    }
+  ]
+
+  const faqs = [
+    {
+      q: t('landing.faq.q1'),
+      a: t('landing.faq.a1')
+    },
+    {
+      q: t('landing.faq.q2'),
+      a: t('landing.faq.a2')
+    },
+    {
+      q: t('landing.faq.q3'),
+      a: t('landing.faq.a3')
+    },
+    {
+      q: t('landing.faq.q4'),
+      a: t('landing.faq.a4')
+    }
+  ]
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300 relative overflow-hidden">
@@ -209,36 +222,84 @@ export default function HomePage() {
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/10">
                 <GraduationCap className="h-6 w-6 text-white" />
               </div>
-              <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">EduCore</span>
+              <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">{t('nav.brand')}</span>
             </Link>
             
             {/* Desktop menu */}
             <div className="hidden md:flex items-center gap-8">
               <Link href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                Fonctionnalités
+                {t('nav.features')}
               </Link>
               <Link href="#interactive-demo" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                Démo Interactive
+                {t('nav.demo')}
               </Link>
               <Link href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                Tarifs
+                {t('nav.pricing')}
               </Link>
               <Link href="#testimonials" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                Témoignages
+                {t('nav.testimonials')}
               </Link>
               <Link href="#faq" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                Aide & FAQ
+                {t('nav.faq')}
               </Link>
             </div>
 
             <div className="hidden md:flex items-center gap-3">
+              {/* Language Switcher dropdown */}
+              <div ref={langRef} className="relative">
+                <button
+                  onClick={() => setLangOpen(!langOpen)}
+                  className="flex items-center gap-1 h-10 px-3 rounded-xl hover:bg-secondary transition-colors text-muted-foreground font-semibold text-xs uppercase"
+                >
+                  <span>{language === 'fr' ? '🇫🇷 FR' : '🇵🇹 PT'}</span>
+                  <ChevronDown className="h-3 w-3 opacity-60" />
+                </button>
+                
+                <AnimatePresence>
+                  {langOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-2 w-32 bg-card border border-border rounded-xl shadow-xl overflow-hidden p-1 z-50"
+                    >
+                      <button
+                        onClick={() => {
+                          setLanguage('fr')
+                          setLangOpen(false)
+                        }}
+                        className={cn(
+                          "flex items-center gap-2 w-full px-3 py-2 rounded-lg text-xs font-semibold hover:bg-secondary transition-colors text-left",
+                          language === 'fr' ? "bg-primary/10 text-primary font-bold" : "text-muted-foreground"
+                        )}
+                      >
+                        🇫🇷 FR
+                      </button>
+                      <button
+                        onClick={() => {
+                          setLanguage('pt')
+                          setLangOpen(false)
+                        }}
+                        className={cn(
+                          "flex items-center gap-2 w-full px-3 py-2 rounded-lg text-xs font-semibold hover:bg-secondary transition-colors text-left",
+                          language === 'pt' ? "bg-primary/10 text-primary font-bold" : "text-muted-foreground"
+                        )}
+                      >
+                        🇵🇹 PT
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               {/* Theme Switcher Toggle */}
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
                 className="w-10 h-10 rounded-xl hover:bg-secondary transition-colors"
-                aria-label="Changer de thème"
+                aria-label={t('nav.themeToggle')}
               >
                 {mounted ? (
                   <motion.div
@@ -260,23 +321,48 @@ export default function HomePage() {
               </Button>
 
               <Link href="/auth/login">
-                <Button variant="ghost" size="sm" className="font-medium">Connexion</Button>
+                <Button variant="ghost" size="sm" className="font-medium">{t('nav.login')}</Button>
               </Link>
               <Link href="/auth/register">
                 <Button size="sm" className="gap-2 font-medium bg-primary text-primary-foreground hover:bg-primary/95 shadow-md shadow-primary/20">
-                  Démarrer <ArrowRight className="h-4 w-4" />
+                  {t('nav.register')} <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
             </div>
 
             {/* Mobile menu button */}
             <div className="flex md:hidden items-center gap-3">
+              <div className="relative">
+                <button
+                  onClick={() => setLangOpen(!langOpen)}
+                  className="flex items-center gap-0.5 p-2 rounded-xl text-muted-foreground font-bold text-xs"
+                >
+                  <span>{language === 'fr' ? '🇫🇷' : '🇵🇹'}</span>
+                </button>
+                {langOpen && (
+                  <div className="absolute right-0 mt-2 w-28 bg-card border border-border rounded-xl shadow-xl overflow-hidden p-1 z-50">
+                    <button
+                      onClick={() => { setLanguage('fr'); setLangOpen(false); }}
+                      className="block w-full text-left px-3 py-1.5 text-xs rounded hover:bg-secondary"
+                    >
+                      🇫🇷 French
+                    </button>
+                    <button
+                      onClick={() => { setLanguage('pt'); setLangOpen(false); }}
+                      className="block w-full text-left px-3 py-1.5 text-xs rounded hover:bg-secondary"
+                    >
+                      🇵🇹 Port.
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
                 className="w-10 h-10 rounded-xl"
-                aria-label="Changer de thème"
+                aria-label={t('nav.themeToggle')}
               >
                 {mounted && theme === 'dark' ? (
                   <Sun className="h-5 w-5 text-amber-500" />
@@ -311,42 +397,42 @@ export default function HomePage() {
                   onClick={() => setMobileMenuOpen(false)}
                   className="block px-3 py-2 rounded-lg text-base font-medium text-muted-foreground hover:text-foreground hover:bg-secondary"
                 >
-                  Fonctionnalités
+                  {t('nav.features')}
                 </Link>
                 <Link
                   href="#interactive-demo"
                   onClick={() => setMobileMenuOpen(false)}
                   className="block px-3 py-2 rounded-lg text-base font-medium text-muted-foreground hover:text-foreground hover:bg-secondary"
                 >
-                  Démo Interactive
+                  {t('nav.demo')}
                 </Link>
                 <Link
                   href="#pricing"
                   onClick={() => setMobileMenuOpen(false)}
                   className="block px-3 py-2 rounded-lg text-base font-medium text-muted-foreground hover:text-foreground hover:bg-secondary"
                 >
-                  Tarifs
+                  {t('nav.pricing')}
                 </Link>
                 <Link
                   href="#testimonials"
                   onClick={() => setMobileMenuOpen(false)}
                   className="block px-3 py-2 rounded-lg text-base font-medium text-muted-foreground hover:text-foreground hover:bg-secondary"
                 >
-                  Témoignages
+                  {t('nav.testimonials')}
                 </Link>
                 <Link
                   href="#faq"
                   onClick={() => setMobileMenuOpen(false)}
                   className="block px-3 py-2 rounded-lg text-base font-medium text-muted-foreground hover:text-foreground hover:bg-secondary"
                 >
-                  Aide & FAQ
+                  {t('nav.faq')}
                 </Link>
                 <div className="pt-4 border-t border-border flex flex-col gap-2">
                   <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="outline" className="w-full justify-center">Connexion</Button>
+                    <Button variant="outline" className="w-full justify-center">{t('nav.login')}</Button>
                   </Link>
                   <Link href="/auth/register" onClick={() => setMobileMenuOpen(false)}>
-                    <Button className="w-full justify-center">Démarrer</Button>
+                    <Button className="w-full justify-center">{t('nav.register')}</Button>
                   </Link>
                 </div>
               </div>
@@ -366,27 +452,27 @@ export default function HomePage() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-semibold mb-8 border border-primary/20 backdrop-blur-md shadow-sm">
               <Star className="h-4 w-4 fill-primary" />
-              La plateforme #1 de gestion scolaire au Sénégal et en Guinée-Bissau
+              {t('landing.badge')}
             </div>
             
             <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
-              Pilotez votre école avec{' '}
-              <span className="gradient-text font-black bg-gradient-to-r from-primary to-accent">excellence</span>
+              {t('landing.hero.title1')}
+              <span className="gradient-text font-black bg-gradient-to-r from-primary to-accent">{t('landing.hero.title2')}</span>
             </h1>
             
             <p className="text-lg sm:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
-              EduCore unifie la gestion académique, la vie scolaire, les relevés de notes et la facturation Mobile Money. La solution préférée des directeurs d&apos;établissements d&apos;Afrique de l&apos;Ouest.
+              {t('landing.hero.desc')}
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/auth/register" className="w-full sm:w-auto">
                 <Button size="lg" className="w-full sm:w-auto gap-2 h-14 px-8 text-base font-semibold shadow-lg shadow-primary/20 bg-primary text-primary-foreground hover:bg-primary/95">
-                  Essayer gratuitement <ArrowRight className="h-5 w-5" />
+                  {t('landing.hero.tryFree')} <ArrowRight className="h-5 w-5" />
                 </Button>
               </Link>
               <Link href="#interactive-demo" className="w-full sm:w-auto">
                 <Button variant="outline" size="lg" className="w-full sm:w-auto h-14 px-8 text-base font-semibold border-border hover:bg-secondary">
-                  Voir la démo interactive
+                  {t('landing.hero.viewDemo')}
                 </Button>
               </Link>
             </div>
@@ -411,7 +497,7 @@ export default function HomePage() {
                   <div className="w-3.5 h-3.5 rounded-full bg-green-500/80" />
                 </div>
                 <div className="bg-background/80 px-10 py-1 rounded-md text-xs text-muted-foreground border border-border max-w-xs truncate">
-                  app.educore-school.com/dashboard
+                  {t('landing.hero.mockUrl')}
                 </div>
                 <div className="w-12" /> {/* spacer */}
               </div>
@@ -421,10 +507,10 @@ export default function HomePage() {
                 {/* Metric grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                   {[
-                    { label: 'Total Élèves', value: '2,847', color: 'text-blue-600 dark:text-blue-400', pct: '+12% ce mois' },
-                    { label: 'Enseignants Actifs', value: '156', color: 'text-purple-600 dark:text-purple-400', pct: 'Taux présence 98%' },
-                    { label: 'Revenus Recouvrés', value: '18,48M F CFA', color: 'text-emerald-600 dark:text-emerald-400', pct: '88% de scolarités' },
-                    { label: 'Présence Élèves', value: '96.2%', color: 'text-amber-600 dark:text-amber-400', pct: 'Aujourd\'hui' }
+                    { label: t('landing.mockDashboard.totalStudents'), value: '2,847', color: 'text-blue-600 dark:text-blue-400', pct: t('landing.mockDashboard.studentsCeMonth') },
+                    { label: t('landing.mockDashboard.activeTeachers'), value: '156', color: 'text-purple-600 dark:text-purple-400', pct: t('landing.mockDashboard.teachersRate') },
+                    { label: t('landing.mockDashboard.recoveredRevenue'), value: '18,48M F CFA', color: 'text-emerald-600 dark:text-emerald-400', pct: t('landing.mockDashboard.revenueScolarite') },
+                    { label: t('landing.mockDashboard.studentAttendance'), value: '96.2%', color: 'text-amber-600 dark:text-amber-400', pct: t('landing.mockDashboard.attendanceToday') }
                   ].map((stat, i) => (
                     <div key={i} className="bg-card border border-border/60 rounded-xl p-5 shadow-sm transition-transform hover:-translate-y-1 duration-200">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{stat.label}</p>
@@ -441,8 +527,8 @@ export default function HomePage() {
                   {/* Performance chart widget */}
                   <div className="lg:col-span-2 bg-card border border-border/60 rounded-xl p-5 shadow-sm">
                     <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-sm font-bold">Évolution des Inscriptions & Rentrées Financières</h4>
-                      <span className="text-xs text-muted-foreground bg-secondary px-2.5 py-1 rounded-md font-medium">Année Scolaire 2025-2026</span>
+                      <h4 className="text-sm font-bold">{t('landing.mockDashboard.chartTitle')}</h4>
+                      <span className="text-xs text-muted-foreground bg-secondary px-2.5 py-1 rounded-md font-medium">{t('landing.mockDashboard.chartSubtitle')}</span>
                     </div>
                     <div className="h-48 flex items-end justify-between gap-3 pt-6 border-b border-border/80 pb-2">
                       {[
@@ -477,19 +563,19 @@ export default function HomePage() {
                   <div className="bg-card border border-border/60 rounded-xl p-5 shadow-sm flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-sm font-bold">Encaissements Live</h4>
+                        <h4 className="text-sm font-bold">{t('landing.mockDashboard.livePayments')}</h4>
                         <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
                       </div>
                       <div className="space-y-3">
                         {[
-                          { parent: 'Dr. Cissé', method: 'Wave', sum: '150,000 CFA', time: 'Il y a 3 min' },
-                          { parent: 'Mme. Diop', method: 'Orange Money', sum: '45,000 CFA', time: 'Il y a 12 min' },
-                          { parent: 'M. Touré', method: 'Wave', sum: '80,000 CFA', time: 'Il y a 45 min' }
+                          { parent: 'Dr. Cissé', method: 'Wave', sum: `150,000 ${t('common.currency')}`, time: t('landing.mockDashboard.txTime1'), detail: t('landing.mockDashboard.fraisInscription') },
+                          { parent: 'Mme. Diop', method: 'Orange Money', sum: `45,000 ${t('common.currency')}`, time: t('landing.mockDashboard.txTime2'), detail: t('landing.mockDashboard.mensualiteMai') },
+                          { parent: 'M. Touré', method: 'Wave', sum: `80,000 ${t('common.currency')}`, time: t('landing.mockDashboard.txTime3'), detail: t('landing.mockDashboard.fraisInscription') }
                         ].map((tx, idx) => (
                           <div key={idx} className="flex items-center justify-between text-xs py-2 border-b border-border/40 last:border-0">
                             <div>
                               <p className="font-semibold">{tx.parent}</p>
-                              <p className="text-[10px] text-muted-foreground">via {tx.method}</p>
+                              <p className="text-[10px] text-muted-foreground">{tx.detail} • via {tx.method}</p>
                             </div>
                             <div className="text-right">
                               <p className="font-bold text-emerald-600 dark:text-emerald-400">+{tx.sum}</p>
@@ -501,8 +587,8 @@ export default function HomePage() {
                     </div>
                     
                     <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground font-medium">Objectif mensuel de collecte :</span>
-                      <span className="font-bold text-primary">85% atteint</span>
+                      <span className="text-muted-foreground font-medium">{t('landing.mockDashboard.monthlyGoal')}</span>
+                      <span className="font-bold text-primary">{t('landing.mockDashboard.goalReached')}</span>
                     </div>
                   </div>
                 </div>
@@ -547,10 +633,10 @@ export default function HomePage() {
             className="text-center mb-20"
           >
             <h2 className="text-3xl sm:text-4xl font-extrabold mb-4 tracking-tight">
-              Tout ce dont vous avez besoin pour réussir
+              {t('landing.featuresShowcase.title')}
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto text-base sm:text-lg">
-              Une suite complète d&apos;outils pensés pour simplifier la vie de l&apos;administration, des enseignants et des parents.
+              {t('landing.featuresShowcase.subtitle')}
             </p>
           </motion.div>
 
@@ -581,10 +667,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl sm:text-4xl font-extrabold mb-4 tracking-tight">
-              Découvrez la simplicité d&apos;EduCore
+              {t('landing.interactiveDemo.title')}
             </h2>
             <p className="text-muted-foreground text-base sm:text-lg">
-              Explorez nos modules à travers notre simulateur interactif. Cliquez sur les différents onglets pour voir comment la plateforme s&apos;adapte.
+              {t('landing.interactiveDemo.subtitle')}
             </p>
           </div>
 
@@ -621,7 +707,7 @@ export default function HomePage() {
                     className="space-y-5"
                   >
                     <span className="text-xs font-bold uppercase tracking-wider text-primary px-3 py-1 bg-primary/10 rounded-full">
-                      Module Intelligent
+                      {t('landing.interactiveDemo.tabStats')}
                     </span>
                     <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
                       {tab.title}
@@ -654,7 +740,7 @@ export default function HomePage() {
                 </div>
                 <div className="text-[11px] font-bold text-muted-foreground tracking-wider uppercase flex items-center gap-1.5">
                   <span className="h-2 w-2 rounded-full bg-primary" />
-                  Visualisation Live
+                  {t('landing.interactiveDemo.liveVisual')}
                 </div>
               </div>
 
@@ -672,11 +758,11 @@ export default function HomePage() {
                       {/* Sub-header inside preview */}
                       <div className="bg-secondary/40 p-3.5 rounded-xl flex items-center justify-between">
                         <div>
-                          <p className="text-xs text-muted-foreground">Classe</p>
+                          <p className="text-xs text-muted-foreground">{t('landing.interactiveDemo.classLabel')}</p>
                           <p className="text-sm font-bold">Troisième A (3ème A)</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-xs text-muted-foreground">Moyenne Générale</p>
+                          <p className="text-xs text-muted-foreground">{t('landing.interactiveDemo.moyenneGenerale')}</p>
                           <p className="text-sm font-extrabold text-indigo-600 dark:text-indigo-400">14.65 / 20</p>
                         </div>
                       </div>
@@ -684,15 +770,15 @@ export default function HomePage() {
                       {/* Mockup Table */}
                       <div className="border border-border/50 rounded-xl overflow-hidden text-xs bg-card">
                         <div className="grid grid-cols-12 bg-secondary/30 p-2.5 font-bold border-b border-border/50 text-muted-foreground">
-                          <div className="col-span-5">Nom de l&apos;élève</div>
-                          <div className="col-span-3 text-center">Maths (Coeff 4)</div>
-                          <div className="col-span-2 text-center">Français</div>
-                          <div className="col-span-2 text-right">Moyenne</div>
+                          <div className="col-span-5">{t('landing.interactiveDemo.nomEleve')}</div>
+                          <div className="col-span-3 text-center">{t('landing.interactiveDemo.mathsCoeff')}</div>
+                          <div className="col-span-2 text-center">{t('landing.interactiveDemo.francais')}</div>
+                          <div className="col-span-2 text-right">{t('landing.interactiveDemo.moyenne')}</div>
                         </div>
                         {[
-                          { name: 'Aicha Diop', m: '18.5', f: '16.0', avg: '17.25', badge: '1ère', badgeColor: 'bg-emerald-500/10 text-emerald-600' },
-                          { name: 'Boubacar Camara', m: '14.0', f: '15.5', avg: '14.75', badge: '4ème', badgeColor: 'bg-blue-500/10 text-blue-600' },
-                          { name: 'Moussa Ndiaye', m: '11.0', f: '13.0', avg: '12.00', badge: '11ème', badgeColor: 'bg-slate-500/10 text-slate-600' }
+                          { name: 'Aicha Diop', m: '18.5', f: '16.0', avg: '17.25', badge: t('landing.interactiveDemo.premier'), badgeColor: 'bg-emerald-500/10 text-emerald-600' },
+                          { name: 'Boubacar Camara', m: '14.0', f: '15.5', avg: '14.75', badge: t('landing.interactiveDemo.quatrieme'), badgeColor: 'bg-blue-500/10 text-blue-600' },
+                          { name: 'Moussa Ndiaye', m: '11.0', f: '13.0', avg: '12.00', badge: t('landing.interactiveDemo.onzieme'), badgeColor: 'bg-slate-500/10 text-slate-600' }
                         ].map((student, idx) => (
                           <div key={idx} className="grid grid-cols-12 p-3 border-b border-border/30 last:border-0 items-center">
                             <div className="col-span-5 font-semibold flex items-center gap-2">
@@ -725,14 +811,14 @@ export default function HomePage() {
                       {/* Metric widgets */}
                       <div className="grid grid-cols-2 gap-4">
                         <div className="bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4">
-                          <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Total Encaissé</p>
+                          <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">{t('landing.interactiveDemo.totalEncaisse')}</p>
                           <p className="text-lg sm:text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">12,845,000 CFA</p>
                           <div className="mt-2 w-full bg-emerald-500/10 h-1.5 rounded-full overflow-hidden">
                             <div className="bg-emerald-500 h-full rounded-full" style={{ width: '84%' }} />
                           </div>
                         </div>
                         <div className="bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl p-4">
-                          <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Impayés Restants</p>
+                          <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">{t('landing.interactiveDemo.impayesRestants')}</p>
                           <p className="text-lg sm:text-xl font-extrabold text-red-600 dark:text-red-400 mt-1">2,450,000 CFA</p>
                           <div className="mt-2 w-full bg-red-500/10 h-1.5 rounded-full overflow-hidden">
                             <div className="bg-red-500 h-full rounded-full" style={{ width: '16%' }} />
@@ -742,11 +828,11 @@ export default function HomePage() {
 
                       {/* Wave/OM Transactions */}
                       <div className="space-y-2.5">
-                        <p className="text-xs font-bold text-muted-foreground uppercase">Paiements Récents (Mobile Money)</p>
+                        <p className="text-xs font-bold text-muted-foreground uppercase">{t('landing.interactiveDemo.paiementsRecents')}</p>
                         {[
-                          { label: 'Wave', amount: '120,000 F CFA', detail: 'Frais Inscription - Aicha Diop', date: 'Aujourd\'hui 10:24', status: 'Payé', statusColor: 'bg-emerald-500/10 text-emerald-600' },
-                          { label: 'Orange Money', amount: '45,000 F CFA', detail: 'Mensualité Mai - Boubacar Camara', date: 'Aujourd\'hui 08:15', status: 'Payé', statusColor: 'bg-emerald-500/10 text-emerald-600' },
-                          { label: 'Wave', amount: '120,000 F CFA', detail: 'Frais Inscription - Moussa Ndiaye', date: 'Hier 16:45', status: 'Payé', statusColor: 'bg-emerald-500/10 text-emerald-600' }
+                          { label: 'Wave', amount: '120,000 F CFA', detail: `${t('landing.mockDashboard.fraisInscription')} - Aicha Diop`, date: `${t('landing.mockDashboard.attendanceToday')} 10:24`, status: t('landing.interactiveDemo.paye'), statusColor: 'bg-emerald-500/10 text-emerald-600' },
+                          { label: 'Orange Money', amount: '45,000 F CFA', detail: `${t('landing.mockDashboard.mensualiteMai')} - Boubacar Camara`, date: `${t('landing.mockDashboard.attendanceToday')} 08:15`, status: t('landing.interactiveDemo.paye'), statusColor: 'bg-emerald-500/10 text-emerald-600' },
+                          { label: 'Wave', amount: '120,000 F CFA', detail: `${t('landing.mockDashboard.fraisInscription')} - Moussa Ndiaye`, date: `Hier 16:45`, status: t('landing.interactiveDemo.paye'), statusColor: 'bg-emerald-500/10 text-emerald-600' }
                         ].map((item, idx) => (
                           <div key={idx} className="bg-card border border-border/50 rounded-xl p-3 flex items-center justify-between text-xs">
                             <div className="flex items-center gap-3">
@@ -780,7 +866,7 @@ export default function HomePage() {
                       className="flex items-center justify-center h-full pb-4"
                     >
                       {/* Mobile viewport frame mockup */}
-                      <div className="w-64 h-[320px] rounded-2xl border-4 border-slate-700 bg-slate-900 text-white relative shadow-lg overflow-hidden flex flex-col">
+                      <div className="w-64 h-[300px] rounded-2xl border-4 border-slate-700 bg-slate-900 text-white relative shadow-lg overflow-hidden flex flex-col">
                         {/* Mobile Status Bar */}
                         <div className="bg-slate-950 px-3 py-1 flex items-center justify-between text-[8px] font-semibold text-slate-400">
                           <span>12:30</span>
@@ -1234,23 +1320,23 @@ export default function HomePage() {
                 <span className="font-bold text-xl tracking-tight">EduCore</span>
               </Link>
               <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">
-                La plateforme ERP scolaire cloud de référence en Afrique de l&apos;Ouest (Sénégal, Guinée-Bissau).
+                {t('landing.footer.desc')}
               </p>
             </div>
             <div>
-              <h4 className="font-bold text-sm mb-4 text-foreground">Produit</h4>
+              <h4 className="font-bold text-sm mb-4 text-foreground">{t('landing.footer.product')}</h4>
               <ul className="space-y-2.5 text-xs text-muted-foreground font-medium">
-                <li><Link href="#features" className="hover:text-foreground transition-colors">Fonctionnalités</Link></li>
-                <li><Link href="#pricing" className="hover:text-foreground transition-colors">Tarifs & Forfaits</Link></li>
-                <li><Link href="#interactive-demo" className="hover:text-foreground transition-colors">Démo Interactive</Link></li>
+                <li><Link href="#features" className="hover:text-foreground transition-colors">{t('landing.footer.features')}</Link></li>
+                <li><Link href="#pricing" className="hover:text-foreground transition-colors">{t('landing.footer.pricing')}</Link></li>
+                <li><Link href="#interactive-demo" className="hover:text-foreground transition-colors">{t('landing.footer.demo')}</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold text-sm mb-4 text-foreground">Développement</h4>
+              <h4 className="font-bold text-sm mb-4 text-foreground">{t('landing.footer.support')}</h4>
               <ul className="space-y-2.5 text-xs text-muted-foreground font-medium">
-                <li><Link href="#" className="hover:text-foreground transition-colors">À propos d&apos;EduCore</Link></li>
-                <li><Link href="#" className="hover:text-foreground transition-colors">Blog & Actualités</Link></li>
-                <li><Link href="#" className="hover:text-foreground transition-colors">Nous Contacter</Link></li>
+                <li><Link href="#" className="hover:text-foreground transition-colors">{t('landing.footer.security')}</Link></li>
+                <li><Link href="#" className="hover:text-foreground transition-colors">{t('landing.footer.support')}</Link></li>
+                <li><Link href="#" className="hover:text-foreground transition-colors">{t('landing.footer.contact')}</Link></li>
               </ul>
             </div>
             <div>
@@ -1265,7 +1351,7 @@ export default function HomePage() {
           
           <div className="border-t border-border pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-xs text-muted-foreground font-semibold">
-              © 2026 EduCore. Tous droits réservés.
+              {t('landing.footer.rights')}
             </p>
             <div className="flex items-center gap-4 text-xs text-muted-foreground font-semibold">
               <span>Bureaux : Dakar, Sénégal • Bissau, Guinée-Bissau</span>
